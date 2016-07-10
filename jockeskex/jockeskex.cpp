@@ -7,7 +7,6 @@
 #include <set>
 
 using namespace std;
-using namespace chrono;
 
 int mex(vector<int>& lst);
 int gv_next(const vector<int>& lst);
@@ -19,9 +18,17 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	vector<int> lst = { 0, 1, 0, 2, 2, 4, 1, 1 };
 
-	auto t1 = high_resolution_clock::now();
+	auto t1 = chrono::high_resolution_clock::now();
 	gv_listing(2000, lst);
 	auto sparse = sp_list(100);
+	
+	//complement
+	vector<int> common;
+	for (int i = 0; i < 100; i++) {
+		if (find(sparse.begin(), sparse.end(), i) == sparse.end()) {
+			common.push_back(i);
+		}
+	}
 
 	//Find indices of sparse values
 	vector<int> sparse_indices;
@@ -29,15 +36,11 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (find(sparse.begin(), sparse.end(), lst[i]) != sparse.end())
 			sparse_indices.push_back(i);
 	}
-	
-	auto t2 = high_resolution_clock::now();
 
-	auto duration = duration_cast<seconds> (t2 - t1).count();
-	cout << endl << duration << endl;
+	auto t2 = chrono::high_resolution_clock::now();
 
-	//for_each(lst.begin(), lst.end(), [](int i) {cout << i << ' '; });
-	cout << endl;
-	for_each(sparse_indices.begin(), sparse_indices.end(), [](int i) {cout << i << ' '; });
+	auto duration = chrono::duration_cast<chrono::seconds> (t2 - t1).count();
+	cout << duration << endl;
 
 	getchar();
 }
