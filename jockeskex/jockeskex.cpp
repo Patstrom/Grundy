@@ -13,20 +13,31 @@ int mex(vector<int>& lst);
 int gv_next(const vector<int>& lst);
 void gv_listing(int n, vector<int>& lst);
 int number_of_set_bits(int k);
+vector<int> sp_list(int k);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
 	vector<int> lst = { 0, 1, 0, 2, 2, 4, 1, 1 };
 
 	auto t1 = high_resolution_clock::now();
-	//gv_listing(5000, lst);
-	std::cout << number_of_set_bits(40);
+	gv_listing(2000, lst);
+	auto sparse = sp_list(100);
+
+	//Find indices of sparse values
+	vector<int> sparse_indices;
+	for (int i = 0; i < (1795 + 1); i++) {
+		if (find(sparse.begin(), sparse.end(), lst[i]) != sparse.end())
+			sparse_indices.push_back(i);
+	}
+	
 	auto t2 = high_resolution_clock::now();
 
 	auto duration = duration_cast<seconds> (t2 - t1).count();
 	cout << endl << duration << endl;
 
 	//for_each(lst.begin(), lst.end(), [](int i) {cout << i << ' '; });
+	cout << endl;
+	for_each(sparse_indices.begin(), sparse_indices.end(), [](int i) {cout << i << ' '; });
 
 	getchar();
 }
@@ -70,7 +81,7 @@ vector<int> sp_list(int k) {
 	for (uint32_t i = 0; i < k; i++){
 		auto tmp = i & binary_value;
 		if (number_of_set_bits(tmp) % 2 == 0)
-			return_list.push_back(tmp);
+			return_list.push_back(i);
 	}
 	return return_list;
 }
