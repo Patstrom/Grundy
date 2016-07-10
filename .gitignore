@@ -1,11 +1,11 @@
 Debug/
 
 #User-specific files
-#*.sln
-#*.suo
-#*.user
-#*.userosscache
-#*.sln.docstates
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 
 # C++ cache files
 ipch/
