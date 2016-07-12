@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <set>
-
+#include <list>
 using namespace std;
 
 int mex(vector<int>& lst);
@@ -13,6 +13,9 @@ int gv_next(const vector<int>& lst);
 void gv_listing(int n, vector<int>& lst);
 int number_of_set_bits(int k);
 vector<int> sp_list(int k);
+int common(std::vector<int> a, std::vector<int> b);
+int gvs_next(const vector<int> & lst, vector<int> b);
+void gvs_listing(const vector<int> & lst, vector<int> b, int n);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -37,11 +40,12 @@ int _tmain(int argc, _TCHAR* argv[])
 			sparse_indices.push_back(i);
 	}
 
+	gvs_listing(lst, sparse, 5000);
+
 	auto t2 = chrono::high_resolution_clock::now();
 
 	auto duration = chrono::duration_cast<chrono::seconds> (t2 - t1).count();
 	cout << duration << endl;
-
 	getchar();
 }
 
@@ -96,4 +100,30 @@ int number_of_set_bits(int i) {
 	i = i - ((i >> 1) & 0x55555555);
 	i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
 	return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
+
+int common(std::vector<int> a, std::vector<int> b) {
+	for (auto num = a.begin(); num != a.end(); ++num) {
+		bool found =
+			(std::find(b.begin(), b.end(), *num) != b.end());
+		if (found) return *num;
+	}
+}
+
+int gvs_next(const vector<int> & lst, vector<int> b) {
+	vector<int> value_list;
+	int size = lst.size();
+	for (auto num = lst.begin(); num != lst.end(); ++num) {
+		value_list.push_back(lst[*num] ^ lst[lst.size() - *num - 2]);
+	}
+	for (auto num = lst.begin() + 1; num != lst.end(); ++num) {
+		value_list.push_back(lst[*num] ^ lst[lst.size() - *num - 1]);
+	}
+	return common(value_list, b);
+}
+
+void gvs_listing(vector<int> & lst, vector<int> b, int n) {
+	for (int i = 0; i < n; i++) {
+		lst.push_back(gvs_next(lst, b));
+	}
 }
