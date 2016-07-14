@@ -13,9 +13,9 @@ int gv_next(const vector<int>& lst);
 void gv_listing(int n, vector<int>& lst);
 int number_of_set_bits(int k);
 vector<int> sp_list(int k);
-int common(std::vector<int> a, std::vector<int> b);
-int gvs_next(const vector<int> & lst, vector<int> b);
-void gvs_listing(const vector<int> & lst, vector<int> b, int n);
+int min_excl_common(vector<int> vl, vector<int> co);
+int gvs_next(const vector<int> & lst, vector<int> co, vector<int> sp);
+void gvs_listing(vector<int> & glst, vector<int> co, vector<int> sp, int n);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -25,7 +25,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	gv_listing(2000, lst);
 	auto sparse = sp_list(100);
 	
-	//complement
+	//complement to sparse
 	vector<int> common;
 	for (int i = 0; i < 100; i++) {
 		if (find(sparse.begin(), sparse.end(), i) == sparse.end()) {
@@ -39,13 +39,22 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (find(sparse.begin(), sparse.end(), lst[i]) != sparse.end())
 			sparse_indices.push_back(i);
 	}
+	
+	gvs_listing(lst, common, sparse_indices, 997992);//In total the first 8+7992+2000 = 10000 values
 
-	gvs_listing(lst, sparse, 5000);
+	
 
 	auto t2 = chrono::high_resolution_clock::now();
 
 	auto duration = chrono::duration_cast<chrono::seconds> (t2 - t1).count();
 	cout << duration << endl;
+
+	//vector<int> myvector = { 1, 2, 5, 6, 8, 11, 12, 15, 16};
+	//cout << min_excl_common(myvector, common);
+	
+	//for (auto i = lst.begin(); i != lst.end(); ++i)
+	//	std::cout << *i << ' ';
+
 	getchar();
 }
 
@@ -102,28 +111,32 @@ int number_of_set_bits(int i) {
 	return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
 
-int common(std::vector<int> a, std::vector<int> b) {
-	for (auto num = a.begin(); num != a.end(); ++num) {
+//vlst = value_list, co = common
+int min_excl_common(vector<int> vlst, vector<int> co) {
+	for (auto it = co.begin(); it != co.end(); ++it) {
 		bool found =
-			(std::find(b.begin(), b.end(), *num) != b.end());
-		if (found) return *num;
+			(find(vlst.begin(), vlst.end(), *it) != vlst.end());
+		if (! found) return *it;
 	}
 }
 
-int gvs_next(const vector<int> & lst, vector<int> b) {
+//glst = list of grundy values, co = common values, sp = sparse_indices
+int gvs_next(const vector<int> & glst, vector<int> co, vector<int> sp) {
 	vector<int> value_list;
-	int size = lst.size();
-	for (auto num = lst.begin(); num != lst.end(); ++num) {
-		value_list.push_back(lst[*num] ^ lst[lst.size() - *num - 2]);
+	int size = glst.size();
+	for (auto it = sp.begin(); it != sp.end(); ++it) {
+		value_list.push_back(glst[*it] ^ glst[size - *it - 2]);
 	}
-	for (auto num = lst.begin() + 1; num != lst.end(); ++num) {
-		value_list.push_back(lst[*num] ^ lst[lst.size() - *num - 1]);
+	for (auto it = sp.begin() + 1; it != sp.end(); ++it) {
+		value_list.push_back(glst[*it] ^ glst[size - *it - 1]);
 	}
-	return common(value_list, b);
+	return min_excl_common(value_list, co);
 }
 
-void gvs_listing(vector<int> & lst, vector<int> b, int n) {
+//lst = list of grundy values, b = common values, c = sparse indices
+void gvs_listing(vector<int> & glst, vector<int> co, vector<int> sp, int n) {
 	for (int i = 0; i < n; i++) {
-		lst.push_back(gvs_next(lst, b));
+		glst.push_back(gvs_next(glst, co, sp));
+//		cout << glst.back();
 	}
 }
