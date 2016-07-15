@@ -2,47 +2,67 @@
 #include <chrono>
 #include <vector>
 #include <iostream>
-#include <string>
 #include <algorithm>
-#include <set>
-#include <list>
+#include <stdlib.h>
+#include <crtdbg.h>
+
+#define _CRTDBG_MAP_ALLOC
+
+#define GRUNDY_VALUES 100000000
+#define SPARSE_VALUES 100
+#define COMMON_VALUES 100
+#define SPARSE_INDICES 1795
+
+
 using namespace std;
 
-int mex(vector<int>& lst);
-int gv_next(const vector<int>& lst);
-void gv_listing(int n, vector<int>& lst);
+int mex(const vector<int>& lst);
+int gv_next();
+void gv_listing(int n);
 int number_of_set_bits(int k);
-vector<int> sp_list(int k);
-int min_excl_common(vector<int> vl, vector<int> co);
-int gvs_next(const vector<int> & lst, vector<int> co, vector<int> sp);
-void gvs_listing(vector<int> & glst, vector<int> co, vector<int> sp, int n);
+void sp_list();
+int min_excl_common();
+int gvs_next();
+void gvs_listing(int n);
+// Make these arrays? Is that faster?
+static vector<int> grundy_values; 
+static vector<int> sparse_values;
+static vector<int> common_values;
+static vector<int> sparse_indices;
+
+static vector<int> gvs_next_value_lst;
+
+void reserve() {
+	grundy_values.reserve(GRUNDY_VALUES);
+	sparse_values.reserve(SPARSE_VALUES);
+	common_values.reserve(COMMON_VALUES);
+	sparse_indices.reserve(SPARSE_INDICES);
+	gvs_next_value_lst.reserve(SPARSE_INDICES * 2);
+}
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	vector<int> lst = { 0, 1, 0, 2, 2, 4, 1, 1 };
+	reserve();
+	grundy_values = { 0, 1, 0, 2, 2, 4, 1, 1 };
 
 	auto t1 = chrono::high_resolution_clock::now();
-	gv_listing(2000, lst);
-	auto sparse = sp_list(100);
+	gv_listing(2000);
+	sp_list();
 	
 	//complement to sparse
-	vector<int> common;
-	for (int i = 0; i < 100; i++) {
-		if (find(sparse.begin(), sparse.end(), i) == sparse.end()) {
-			common.push_back(i);
+	for (int i = 0; i < COMMON_VALUES; ++i) {
+		if (find(sparse_values.begin(), sparse_values.end(), i) == sparse_values.end()) {
+			common_values.push_back(i);
 		}
 	}
 
-	//Find indices of sparse values
-	vector<int> sparse_indices;
-	for (int i = 0; i < (1795 + 1); i++) {
-		if (find(sparse.begin(), sparse.end(), lst[i]) != sparse.end())
+	//Find indices of sparse_values values
+	for (int i = 0; i < (SPARSE_INDICES + 1); ++i) {
+		if (find(sparse_values.begin(), sparse_values.end(), grundy_values[i]) != sparse_values.end())
 			sparse_indices.push_back(i);
 	}
 	
-	gvs_listing(lst, common, sparse_indices, 997992);//In total the first 8+7992+2000 = 10000 values
-
-	
+	gvs_listing(GRUNDY_VALUES - 2008); //In total the first 8+7992+2000 = 10000 values
 
 	auto t2 = chrono::high_resolution_clock::now();
 
@@ -55,51 +75,43 @@ int _tmain(int argc, _TCHAR* argv[])
 	//for (auto i = lst.begin(); i != lst.end(); ++i)
 	//	std::cout << *i << ' ';
 
-	getchar();
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); //Look for memory leaks
 }
 
-int mex(vector<int>& lst) {
-	sort(lst.begin(), lst.end());
-
-	if (lst[0] != 0) return 0;
-	int size = lst.size();
-	for (int i = 0; i < size - 1; i++) {
-		int diff = lst[i + 1] - lst[i];
-		if (diff > 1)
-			return lst[i]+1;
+int mex(const vector<int> & lst) {
+	int i = 0;
+	while (std::find(lst.begin(), lst.end(), i) != lst.end()) {
+		++i;
 	}
-	return *lst.rbegin() + 1;
+	return i;
 }
 
-int gv_next(const vector<int>& lst) {
+int gv_next() {
 	vector<int> value_list;
-	int size = lst.size();
+	int size = grundy_values.size();
+	value_list.reserve(size + 1);
 
-	for (int i = 0; i <= size / 2; i++)
-		value_list.push_back(lst[i] ^ lst[lst.size() - i - 2]);
-	for (int i = 1; i <= size / 2; i++)
-		value_list.push_back(lst[i] ^ lst[lst.size() - i - 1]);
+	for (int i = 0; i <= size / 2; ++i)
+		value_list.push_back(grundy_values[i] ^ grundy_values[size - i - 2]);
+	for (int i = 1; i <= size / 2; ++i)
+		value_list.push_back(grundy_values[i] ^ grundy_values[size - i - 1]);
 	return mex(value_list);
-
 }
 
-void gv_listing(int n, vector<int>& lst) {
-	for (int i = 0; i < n; i++) {
-		lst.push_back(gv_next(lst));
+void gv_listing(int n) {
+	for (int i = 0; i < n; ++i) {
+		grundy_values.push_back(gv_next());
 	}
 }
 
-vector<int> sp_list(int k) {
-	vector<int> return_list;
-
+void sp_list() {
 	uint32_t binary_value = 4059; //Magic number
 
-	for (uint32_t i = 0; i < k; i++){
+	for (uint32_t i = 0; i < SPARSE_VALUES; ++i){
 		auto tmp = i & binary_value;
 		if (number_of_set_bits(tmp) % 2 == 0)
-			return_list.push_back(i);
+			sparse_values.push_back(i);
 	}
-	return return_list;
 }
 
 //Stolen from http://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
@@ -111,32 +123,41 @@ int number_of_set_bits(int i) {
 	return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
 
-//vlst = value_list, co = common
-int min_excl_common(vector<int> vlst, vector<int> co) {
-	for (auto it = co.begin(); it != co.end(); ++it) {
+// Optimize here. Can probably re-use old values
+int min_excl_common() {
+	for (auto it = common_values.begin(); it != common_values.end(); ++it) {
 		bool found =
-			(find(vlst.begin(), vlst.end(), *it) != vlst.end());
-		if (! found) return *it;
+			(find(gvs_next_value_lst.begin(), gvs_next_value_lst.end(), *it) != gvs_next_value_lst.end());
+		if (!found) return *it;
 	}
 }
 
-//glst = list of grundy values, co = common values, sp = sparse_indices
-int gvs_next(const vector<int> & glst, vector<int> co, vector<int> sp) {
-	vector<int> value_list;
-	int size = glst.size();
-	for (auto it = sp.begin(); it != sp.end(); ++it) {
-		value_list.push_back(glst[*it] ^ glst[size - *it - 2]);
+//Optimization is probably possible here. Can we re-use old values?
+int gvs_next() {
+	int size = grundy_values.size();
+
+	// For use with static vlist
+	for (int i = 0; i < sparse_indices.size(); ++i) {
+		int index = sparse_indices[i];
+		gvs_next_value_lst[i] = (grundy_values[index] ^ grundy_values[size - index - 2]);
 	}
-	for (auto it = sp.begin() + 1; it != sp.end(); ++it) {
-		value_list.push_back(glst[*it] ^ glst[size - *it - 1]);
+	for (int i = 1; i < sparse_indices.size(); ++i) {
+		int index = sparse_indices[i];
+		gvs_next_value_lst[i] = (grundy_values[index] ^ grundy_values[size - index - 1]);
 	}
-	return min_excl_common(value_list, co);
+	/* If no static returnlist
+	for (auto it = sparse_indices.begin(); it != sparse_indices.end(); ++it) {
+		vlist.push_back(grundy_values[*it] ^ grundy_values[size - *it - 2]);
+	}
+	for (auto it = sparse_indices.begin() + 1; it != sparse_indices.end(); ++it) {
+		vlist.push_back(grundy_values[*it] ^ grundy_values[size - *it - 1]);
+	}
+	*/
+	return min_excl_common();
 }
 
-//lst = list of grundy values, b = common values, c = sparse indices
-void gvs_listing(vector<int> & glst, vector<int> co, vector<int> sp, int n) {
-	for (int i = 0; i < n; i++) {
-		glst.push_back(gvs_next(glst, co, sp));
-//		cout << glst.back();
+void gvs_listing(int n) {
+	for (int i = 0; i < n; ++i) {
+		grundy_values.push_back(gvs_next());
 	}
 }
