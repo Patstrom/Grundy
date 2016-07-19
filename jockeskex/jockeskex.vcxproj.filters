@@ -29,5 +29,8 @@
     <ClCompile Include="jockeskex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="period.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
