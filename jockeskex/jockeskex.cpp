@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 
-#define _CRTDBG_MAP_ALLOC
-
 #define GRUNDY_VALUES 100000000
 #define SPARSE_VALUES 100
 #define COMMON_VALUES 100
@@ -37,7 +35,6 @@ void reserve() {
 	sparse_values.reserve(SPARSE_VALUES);
 	common_values.reserve(COMMON_VALUES);
 	sparse_indices.reserve(SPARSE_INDICES);
-	gvs_next_value_lst.reserve(SPARSE_INDICES * 2);
 }
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -48,7 +45,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	auto t1 = chrono::high_resolution_clock::now();
 	gv_listing(2000);
 	sp_list();
-	
+
 	//complement to sparse
 	for (int i = 0; i < COMMON_VALUES; ++i) {
 		if (find(sparse_values.begin(), sparse_values.end(), i) == sparse_values.end()) {
@@ -61,21 +58,18 @@ int _tmain(int argc, _TCHAR* argv[])
 		if (find(sparse_values.begin(), sparse_values.end(), grundy_values[i]) != sparse_values.end())
 			sparse_indices.push_back(i);
 	}
-	
-	gvs_listing(GRUNDY_VALUES - 2008); //In total the first 8+7992+2000 = 10000 values
+
+	gvs_next_value_lst.resize(sparse_indices.size() * 2); 
+
+	gvs_listing(GRUNDY_VALUES - 2008); 
 
 	auto t2 = chrono::high_resolution_clock::now();
 
 	auto duration = chrono::duration_cast<chrono::seconds> (t2 - t1).count();
-	cout << duration << endl;
 
-	//vector<int> myvector = { 1, 2, 5, 6, 8, 11, 12, 15, 16};
-	//cout << min_excl_common(myvector, common);
-	
-	//for (auto i = lst.begin(); i != lst.end(); ++i)
-	//	std::cout << *i << ' ';
-
-	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); //Look for memory leaks
+	//for (auto it = grundy_values.begin(); it != grundy_values.end(); ++it)
+	//	printf("%d, ", *it);
+	printf("\n%d\n", duration);
 }
 
 int mex(const vector<int> & lst) {
@@ -134,16 +128,14 @@ int min_excl_common() {
 
 //Optimization is probably possible here. Can we re-use old values?
 int gvs_next() {
-	int size = grundy_values.size();
+	auto size = grundy_values.size();
 
 	// For use with static vlist
 	for (int i = 0; i < sparse_indices.size(); ++i) {
-		int index = sparse_indices[i];
-		gvs_next_value_lst[i] = (grundy_values[index] ^ grundy_values[size - index - 2]);
+		gvs_next_value_lst[i] = (grundy_values[sparse_indices[i]] ^ grundy_values[size - sparse_indices[i] - 2]);
 	}
 	for (int i = 1; i < sparse_indices.size(); ++i) {
-		int index = sparse_indices[i];
-		gvs_next_value_lst[i] = (grundy_values[index] ^ grundy_values[size - index - 1]);
+		gvs_next_value_lst[sparse_indices.size() + i] = (grundy_values[sparse_indices[i]] ^ grundy_values[size - sparse_indices[i] - 1]);
 	}
 	/* If no static returnlist
 	for (auto it = sparse_indices.begin(); it != sparse_indices.end(); ++it) {
