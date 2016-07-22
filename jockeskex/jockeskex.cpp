@@ -5,8 +5,9 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <crtdbg.h>
+#include "math.h"
 
-#define GRUNDY_VALUES 100000000
+#define GRUNDY_VALUES 500000000
 #define SPARSE_VALUES 100
 #define COMMON_VALUES 100
 #define SPARSE_INDICES 1795
@@ -14,6 +15,7 @@
 
 using namespace std;
 
+// Functions for finding grundy-values.
 int mex(const vector<int>& lst);
 int gv_next();
 void gv_listing(int n);
@@ -22,6 +24,16 @@ void sp_list();
 int min_excl_common();
 int gvs_next();
 void gvs_listing(int n);
+
+// Functions for determining periodicity.
+int pcheck(vector<int> & glst);
+int prepercheck(vector<int> & glst, int p);
+void ultpercheck(vector<int> & glst, int p, int pre_p, int t);	//t is a parameter of a given octal game,
+																//the lowest non-zero digit, i.e. For the 
+																//octal game 0.30400... (this is usually written
+																//as 0.304), t = 3.
+void total_check(vector<int> & glst, int t);
+
 // Make these arrays? Is that faster?
 static vector<int> grundy_values; 
 static vector<int> sparse_values;
@@ -67,9 +79,19 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	auto duration = chrono::duration_cast<chrono::seconds> (t2 - t1).count();
 
-	//for (auto it = grundy_values.begin(); it != grundy_values.end(); ++it)
-	//	printf("%d, ", *it);
-	printf("\n%d\n", duration);
+	/*for (auto it = grundy_values.begin(); it != grundy_values.end(); ++it)
+		printf("%d, ", *it);*/
+	cout << "The time for computing the grundy values is "<< duration << " seconds.\n";
+	
+	auto t3 = chrono::high_resolution_clock::now();
+	total_check(grundy_values, 3);
+	auto t4 = chrono::high_resolution_clock::now();
+	auto duration2 = chrono::duration_cast<chrono::seconds> (t4 - t3).count();
+
+	cout << "The time for determining ultimately periodcity is " << duration2 << " seconds.";
+
+	cin.get();
+
 }
 
 int mex(const vector<int> & lst) {
@@ -152,4 +174,110 @@ void gvs_listing(int n) {
 	for (int i = 0; i < n; ++i) {
 		grundy_values.push_back(gvs_next());
 	}
+}
+
+//
+// FUNCTIONS FOR DETERMINING PERIODICITY
+//
+
+//p = period, 
+//pcand = candidate for period (if no possible period, pcand = -1),
+//k = amount of times the sequence repeats.
+int pcheck(vector<int> & glst) {
+	int p = 1;
+	int pcand = -1;
+	int size = glst.size();
+
+	//cout << "hej";
+	while (p <= size / 2)
+	{
+		int k = 1;
+		while (k*p <= size) {
+			if (size - p < k*p) {
+				pcand = p;
+				p = p*k - p + 1;//DET MAGISKA HOPPET! ANVÄNDER SATS FÖR ATT BERÄTTIGA DETTA!
+				break
+					;
+			}
+			else {
+				for (int i = 0; i < p; ++i) {
+					if (glst[size - 1 - i] != glst[size - 1 - i - k*p]) {
+						if (k > 1) {
+							pcand = p;
+							p = p*k - p + 1;//p*k-p+2???
+							;
+						}
+						else {
+							p++;
+							;
+						}
+						k = size / p;
+						break
+							;
+					}
+					;
+				}
+				k++;
+				;
+			}
+			;
+		}
+		;
+	}
+	return pcand;
+};
+
+int prepercheck(vector<int> & glst, int p) {
+	int pre_p = -1;
+	int size = glst.size();
+	int quot = floor(size / p);
+
+	for (int i = 1; i < quot; i++) {//Starting value for i? i = 1, 2? 
+									//2 Should be OK (from speed POV) but maybe gets in trouble??
+									//Shouldn't matter much.
+		for (int j = 0; j < p; j++) {
+			if (glst[size - 1 - j] != glst[size - 1 - j - i*p]) {
+				pre_p = size - j - i*p;
+				return pre_p;
+				;
+			}
+		}
+	}
+	int extra = size - p*quot;
+	for (int k = 0; k < extra; k++) {
+		if (glst[size - 1 - k] != glst[size - 1 - k - quot*p]) {
+			pre_p = size - k - quot*p;
+			return pre_p;
+		}
+		;
+	}
+	pre_p = 0;
+	return pre_p;
+}
+
+void ultpercheck(vector<int> & glst, int p, int pre_p, int t) {
+	if (p == -1) {
+		cout << "List not ultimately periodic/Not sufficiently long." << "\n";
+		;
+	}
+	else {
+
+		int size = glst.size();
+		if (size >= 2 * p + 2 * pre_p + t) {
+			cout << "The list is ultimately periodic with preperiod " << pre_p << " and period " << p << ".\n";
+			;
+		}
+		else {
+			cout << "List not ultimately periodic/Not sufficiently long."<< "\n";
+			;
+		}
+		;
+	}
+	;
+}
+
+void total_check(vector<int> & glst, int t) {
+	int period = pcheck(glst);
+	int preperiod = prepercheck(glst, period);
+	ultpercheck(glst, period, preperiod, t);
 }
