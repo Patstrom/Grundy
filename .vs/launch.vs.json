@@ -1,0 +1,11 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "ConsoleApplication1\\ConsoleApplication1\\ConsoleApplication1.vcxproj",
+      "name": "ConsoleApplication1.vcxproj"
+    }
+  ]
+}

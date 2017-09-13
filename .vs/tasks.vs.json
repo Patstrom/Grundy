@@ -1,0 +1,15 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskName": "task-Grundy",
+      "appliesTo": "/",
+      "type": "launch"
+    },
+    {
+      "taskName": "task-ConsoleApplication1",
+      "appliesTo": "ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.vcxproj",
+      "type": "msbuild"
+    }
+  ]
+}

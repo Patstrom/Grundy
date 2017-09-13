@@ -7,6 +7,7 @@
 #include "algorithm"
 #include "vector"
 #include "chrono"
+#include <cmath>
 
 using namespace std;
 
@@ -70,9 +71,9 @@ int main()
 
 	auto t_start = chrono::high_resolution_clock::now();
 
-	string ostr = "4.064";
-	string bstr = "11111101011";
-	int n = 275000;
+	string ostr = "0.007";
+	string bstr = "11111101000";
+	int n = 100000;
 	int last = 470;
 	int lastsparse = 200;//SOME NUMBER THAT IS BIGGER THAN THE MAX GV
 
